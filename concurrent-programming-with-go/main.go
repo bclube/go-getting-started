@@ -14,19 +14,21 @@ var rnd = rand.New(rand.NewSource(time.Now().UnixNano()))
 func main() {
 	for i := 0; i < 10; i++ {
 		id := rnd.Intn(10) + 1
-		if b, ok := queryCache(id); ok {
-			fmt.Println("from cache")
-			fmt.Println(b)
-			continue
-		}
-		if b, ok := queryDatabase(id); ok {
-			fmt.Println("from database")
-			fmt.Println(b)
-			continue
-		}
-		fmt.Printf("Book not found with id: '%v'", id)
+		go func(id int) {
+			if b, ok := queryCache(id); ok {
+				fmt.Println("from cache")
+				fmt.Println(b)
+			}
+		}(id)
+		go func(id int) {
+			if b, ok := queryDatabase(id); ok {
+				fmt.Println("from database")
+				fmt.Println(b)
+			}
+		}(id)
 		time.Sleep(150 * time.Millisecond)
 	}
+	time.Sleep(2 * time.Second)
 }
 
 func queryCache(id int) (models.Book, bool) {
